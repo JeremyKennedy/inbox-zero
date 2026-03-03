@@ -183,7 +183,7 @@ const searchInboxInputSchema = z.object({
     .number()
     .int()
     .min(1)
-    .max(50)
+    .max(500)
     .default(20)
     .describe("Maximum number of messages to return."),
   pageToken: z
