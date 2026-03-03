@@ -167,7 +167,7 @@ export function parseJmapEmail(email: JmapEmail): ParsedMessage {
     snippet: email.preview,
     historyId: "",
     attachments:
-      email.attachments.length > 0
+      email.attachments && email.attachments.length > 0
         ? email.attachments.map(convertAttachment)
         : undefined,
     inline: [],
@@ -211,7 +211,7 @@ function extractBodyContent(
   if (!parts || parts.length === 0) return undefined;
 
   const content = parts
-    .map((part) => email.bodyValues[part.partId]?.value)
+    .map((part) => email.bodyValues?.[part.partId]?.value)
     .filter(Boolean)
     .join("");
 

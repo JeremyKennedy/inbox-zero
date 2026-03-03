@@ -42,6 +42,32 @@ function makeEmail(overrides: Partial<JmapEmail> = {}): JmapEmail {
   };
 }
 
+/** Simulates a JMAP response with only EMAIL_PROPERTIES_MINIMAL (no body/attachments). */
+function makeMinimalEmail(overrides: Partial<JmapEmail> = {}): JmapEmail {
+  return {
+    id: "e1",
+    blobId: "b1",
+    threadId: "t1",
+    mailboxIds: { inbox1: true },
+    keywords: { $seen: true },
+    receivedAt: "2024-06-01T12:00:00Z",
+    sentAt: "2024-06-01T11:59:00Z",
+    size: 1234,
+    subject: "Hello",
+    from: [{ name: "Alice", email: "alice@example.com" }],
+    to: [{ name: "Bob", email: "bob@example.com" }],
+    cc: null,
+    bcc: null,
+    replyTo: null,
+    messageId: ["<msg-1@example.com>"],
+    inReplyTo: null,
+    references: null,
+    hasAttachment: false,
+    preview: "This is a preview",
+    ...overrides,
+  };
+}
+
 describe("parseJmapEmail", () => {
   it("parses basic fields correctly", () => {
     const result = parseJmapEmail(makeEmail());
@@ -230,6 +256,20 @@ describe("parseJmapEmail", () => {
     expect(result.headers.references).toBe(
       "<ref1@example.com> <ref2@example.com>",
     );
+  });
+
+  it("handles minimal properties (no body/attachments fields)", () => {
+    // When fetchBody is false, JMAP only returns EMAIL_PROPERTIES_MINIMAL.
+    // textBody, htmlBody, attachments, and bodyValues are all undefined.
+    const result = parseJmapEmail(makeMinimalEmail());
+
+    expect(result.id).toBe("e1");
+    expect(result.threadId).toBe("t1");
+    expect(result.subject).toBe("Hello");
+    expect(result.snippet).toBe("This is a preview");
+    expect(result.textPlain).toBeUndefined();
+    expect(result.textHtml).toBeUndefined();
+    expect(result.attachments).toBeUndefined();
   });
 
   it("converts receivedAt to millisecond timestamp for internalDate", () => {

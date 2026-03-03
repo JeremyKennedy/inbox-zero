@@ -54,10 +54,10 @@ export type JmapEmail = {
   references: string[] | null;
   hasAttachment: boolean;
   preview: string;
-  textBody: JmapEmailBodyPart[];
-  htmlBody: JmapEmailBodyPart[];
-  attachments: JmapEmailAttachment[];
-  bodyValues: Record<string, JmapEmailBodyValue>;
+  textBody?: JmapEmailBodyPart[];
+  htmlBody?: JmapEmailBodyPart[];
+  attachments?: JmapEmailAttachment[];
+  bodyValues?: Record<string, JmapEmailBodyValue>;
 };
 
 export type JmapMailbox = {
