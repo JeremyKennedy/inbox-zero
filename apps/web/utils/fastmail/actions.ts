@@ -267,13 +267,13 @@ export async function bulkTrashFromSenders(
 
 // --- helpers ---
 
-function buildUpdateForAll(
+export function buildUpdateForAll(
   emailIds: string[],
   patch: Record<string, unknown>,
 ): Record<string, Record<string, unknown>> {
   const update: Record<string, Record<string, unknown>> = {};
   for (const id of emailIds) {
-    update[id] = patch;
+    update[id] = { ...patch };
   }
   return update;
 }

@@ -139,7 +139,8 @@ export class FastmailProvider implements EmailProvider {
       parent = await this.createLabel(PARENT_LABEL);
     }
 
-    const existing = await this.getLabelByName(labelDef.name);
+    const leafName = labelDef.name.replace(`${PARENT_LABEL}/`, "");
+    const existing = await this.getLabelByName(leafName);
     if (existing) return existing;
 
     const accountId = await this.client.getAccountId();
@@ -840,6 +841,7 @@ export class FastmailProvider implements EmailProvider {
     const identities = await getIdentities(this.client, { accountId });
     if (identities.length === 0) throw new Error("No identities available");
 
+    const c = await this.cache();
     await jmapSendEmail(this.client, {
       accountId,
       to: [args.to],
@@ -848,6 +850,7 @@ export class FastmailProvider implements EmailProvider {
       subject: args.subject,
       textBody: args.messageText,
       from: identities[0].email,
+      sentMailboxId: getSentId(c),
     });
   }
 
@@ -879,6 +882,7 @@ export class FastmailProvider implements EmailProvider {
       identities[0]?.email;
     if (!from) throw new Error("No sender identity available");
 
+    const c = await this.cache();
     return jmapSendEmail(this.client, {
       accountId,
       to: [body.to],
@@ -891,6 +895,7 @@ export class FastmailProvider implements EmailProvider {
       inReplyTo: body.replyToEmail?.headerMessageId,
       references: body.replyToEmail?.references,
       threadId: body.replyToEmail?.threadId,
+      sentMailboxId: getSentId(c),
       attachments: body.attachments?.map((a) => ({
         name: a.filename,
         contentType: a.contentType,
@@ -1093,7 +1098,7 @@ export class FastmailProvider implements EmailProvider {
 
 // --- module-level helpers ---
 
-function buildThreadQueryFilter(
+export function buildThreadQueryFilter(
   cache: MailboxCache,
   query?: ThreadsQuery,
 ): Record<string, unknown> {
@@ -1123,7 +1128,7 @@ function buildThreadQueryFilter(
   return { operator: "AND", conditions };
 }
 
-function buildPaginationFilter(
+export function buildPaginationFilter(
   cache: MailboxCache,
   options: {
     query?: string;

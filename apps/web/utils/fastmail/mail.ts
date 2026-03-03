@@ -35,6 +35,7 @@ type SendEmailOptions = {
   references?: string;
   threadId?: string;
   attachments?: SendAttachment[];
+  sentMailboxId?: string;
 };
 
 type SendEmailResult = {
@@ -107,7 +108,8 @@ export async function sendEmail(
   } = options;
 
   const identities = await getIdentities(client, { accountId });
-  const identity = identities.find((i) => i.email === from);
+  const fromLower = from.toLowerCase();
+  const identity = identities.find((i) => i.email.toLowerCase() === fromLower);
   if (!identity) {
     throw new Error(
       `No identity found for sender address "${from}". Available: ${identities.map((i) => i.email).join(", ")}`,
@@ -119,7 +121,8 @@ export async function sendEmail(
     attachmentBlobs = await uploadSendAttachments(client, attachments);
   }
 
-  const sentMailboxId = await getSentMailboxId(client, accountId);
+  const sentMailboxId =
+    options.sentMailboxId ?? (await getSentMailboxId(client, accountId));
 
   const emailObject = buildEmailObject({
     mailboxId: sentMailboxId,
@@ -331,21 +334,8 @@ export async function sendDraft(
     throw new Error("No identities available for sending");
   }
 
+  // Use onSuccessUpdateEmail so the draft is only moved to Sent if submission succeeds
   const methodCalls: JmapMethodCall[] = [
-    [
-      "Email/set",
-      {
-        accountId,
-        update: {
-          [draftId]: {
-            "keywords/$draft": null,
-            [`mailboxIds/${draftsMailboxId}`]: null,
-            [`mailboxIds/${sentMailboxId}`]: true,
-          },
-        },
-      },
-      "moveEmail",
-    ],
     [
       "EmailSubmission/set",
       {
@@ -354,6 +344,13 @@ export async function sendDraft(
           sendRef: {
             emailId: draftId,
             identityId: identities[0].id,
+          },
+        },
+        onSuccessUpdateEmail: {
+          "#sendRef": {
+            "keywords/$draft": null,
+            [`mailboxIds/${draftsMailboxId}`]: null,
+            [`mailboxIds/${sentMailboxId}`]: true,
           },
         },
       },
@@ -369,21 +366,14 @@ export async function sendDraft(
 
   const responses = await client.request(methodCalls);
 
-  const moveData = responses[0][1] as JmapSetResponse;
-  if (moveData.notUpdated?.[draftId]) {
-    throw new Error(
-      `Failed to prepare draft for sending: ${JSON.stringify(moveData.notUpdated[draftId])}`,
-    );
-  }
-
-  const submitData = responses[1][1] as JmapSetResponse;
+  const submitData = responses[0][1] as JmapSetResponse;
   if (submitData.notCreated?.sendRef) {
     throw new Error(
       `Failed to submit draft: ${JSON.stringify(submitData.notCreated.sendRef)}`,
     );
   }
 
-  const emailData = responses[2][1] as JmapGetResponse<{
+  const emailData = responses[1][1] as JmapGetResponse<{
     id: string;
     threadId: string;
   }>;
@@ -428,7 +418,7 @@ type BuildEmailObjectOptions = {
   keywords: Record<string, boolean>;
 };
 
-function buildEmailObject(
+export function buildEmailObject(
   options: BuildEmailObjectOptions,
 ): Record<string, unknown> {
   const {

@@ -108,6 +108,12 @@ export class FastmailClient {
       body: data,
     });
 
+    if (!response.ok) {
+      throw new Error(
+        `JMAP blob upload failed: ${response.status} ${response.statusText}`,
+      );
+    }
+
     const result = await response.json();
     return result.blobId as string;
   }
