@@ -117,6 +117,18 @@ export async function getOutlookClientForEmailId({
   return outlook;
 }
 
+export async function getFastmailTokenForEmail({
+  emailAccountId,
+}: {
+  emailAccountId: string;
+  logger: Logger;
+}): Promise<string> {
+  const tokens = await getTokens({ emailAccountId });
+  if (!tokens.accessToken)
+    throw new Error("No Fastmail token found for email account");
+  return tokens.accessToken;
+}
+
 async function getTokens({ emailAccountId }: { emailAccountId: string }) {
   const emailAccount = await prisma.emailAccount.findUnique({
     where: { id: emailAccountId },

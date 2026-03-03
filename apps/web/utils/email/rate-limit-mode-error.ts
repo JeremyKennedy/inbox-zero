@@ -19,6 +19,11 @@ const EMAIL_PROVIDER_RATE_LIMIT_METADATA = {
     messageProviderLabel: "Microsoft",
     bannerProviderLabel: "Microsoft Outlook",
   },
+  fastmail: {
+    apiErrorType: "JMAP Rate Limit",
+    messageProviderLabel: "Fastmail",
+    bannerProviderLabel: "Fastmail",
+  },
 } satisfies Record<
   EmailProviderRateLimitProvider,
   EmailProviderRateLimitMetadata
@@ -48,7 +53,12 @@ export class ProviderRateLimitModeError extends Error {
 export function toRateLimitProvider(
   provider: string | null | undefined,
 ): EmailProviderRateLimitProvider | null {
-  if (provider === "google" || provider === "microsoft") return provider;
+  if (
+    provider === "google" ||
+    provider === "microsoft" ||
+    provider === "fastmail"
+  )
+    return provider;
   return null;
 }
 

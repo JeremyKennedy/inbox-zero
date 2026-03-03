@@ -39,6 +39,13 @@ const PROVIDER_CONFIG: Record<
         emailAddress,
       )}/#advanced-search/from=${encodeURIComponent(from)}`,
   },
+  fastmail: {
+    buildUrl: (_messageOrThreadId: string, _emailAddress?: string | null) =>
+      "https://app.fastmail.com/mail/Inbox",
+    selectId: (_messageId: string, threadId: string) => threadId,
+    buildSearchUrl: (from: string, _emailAddress?: string | null) =>
+      `https://app.fastmail.com/mail/search:from=${encodeURIComponent(from)}`,
+  },
   default: {
     buildUrl: (messageOrThreadId: string, emailAddress?: string | null) =>
       `${getGmailBaseUrl(emailAddress)}/#all/${messageOrThreadId}`,

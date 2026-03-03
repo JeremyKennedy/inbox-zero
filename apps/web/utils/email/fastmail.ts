@@ -54,7 +54,7 @@ import {
 } from "@/utils/fastmail/mail";
 
 export class FastmailProvider implements EmailProvider {
-  readonly name = "fastmail" as "google" | "microsoft";
+  readonly name = "fastmail" as const;
   private readonly client: FastmailClient;
   private readonly logger: Logger;
   private mailboxCache: MailboxCache | null = null;

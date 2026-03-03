@@ -28,6 +28,9 @@ export function LoginForm({ showLocalBypass }: { showLocalBypass: boolean }) {
   const [loadingGoogle, setLoadingGoogle] = useState(false);
   const [loadingMicrosoft, setLoadingMicrosoft] = useState(false);
   const [loadingLocalBypass, setLoadingLocalBypass] = useState(false);
+  const [loadingFastmail, setLoadingFastmail] = useState(false);
+  const [showFastmailInput, setShowFastmailInput] = useState(false);
+  const [fastmailToken, setFastmailToken] = useState("");
 
   const handleGoogleSignIn = async () => {
     await handleSocialSignIn({
@@ -47,6 +50,45 @@ export function LoginForm({ showLocalBypass }: { showLocalBypass: boolean }) {
       errorCallbackURL,
       setLoading: setLoadingMicrosoft,
     });
+  };
+
+  const handleFastmailSignIn = async () => {
+    if (!fastmailToken.trim()) {
+      toastError({
+        title: "API token required",
+        description: "Please enter your Fastmail API token",
+      });
+      return;
+    }
+    setLoadingFastmail(true);
+    try {
+      const response = await fetch("/api/auth/sign-in/fastmail", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ apiToken: fastmailToken, callbackURL }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.message || "Fastmail login failed");
+      }
+
+      const result: { callbackURL?: string } = await response.json();
+      window.location.assign(
+        result.callbackURL && isInternalPath(result.callbackURL)
+          ? result.callbackURL
+          : callbackURL,
+      );
+    } catch (error) {
+      console.error("Error signing in with Fastmail:", error);
+      toastError({
+        title: "Error signing in with Fastmail",
+        description:
+          error instanceof Error ? error.message : "Check your API token",
+      });
+    } finally {
+      setLoadingFastmail(false);
+    }
   };
 
   const handleLocalBypassSignIn = async () => {
@@ -139,6 +181,39 @@ export function LoginForm({ showLocalBypass }: { showLocalBypass: boolean }) {
           <span className="ml-2">Sign in with Microsoft</span>
         </span>
       </Button>
+
+      {!showFastmailInput ? (
+        <Button
+          size="2xl"
+          color="white"
+          onClick={() => setShowFastmailInput(true)}
+        >
+          <span className="flex items-center justify-center">
+            <span className="ml-2">Sign in with Fastmail</span>
+          </span>
+        </Button>
+      ) : (
+        <div className="flex flex-col gap-2">
+          <input
+            type="password"
+            placeholder="Fastmail API token"
+            value={fastmailToken}
+            onChange={(e) => setFastmailToken(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleFastmailSignIn();
+            }}
+            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            autoFocus
+          />
+          <Button
+            size="2xl"
+            loading={loadingFastmail}
+            onClick={handleFastmailSignIn}
+          >
+            Connect Fastmail
+          </Button>
+        </div>
+      )}
 
       <UIButton
         variant="ghost"

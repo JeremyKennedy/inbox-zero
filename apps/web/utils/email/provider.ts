@@ -1,15 +1,19 @@
 import {
+  getFastmailTokenForEmail,
   getGmailClientForEmail,
   getOutlookClientForEmail,
 } from "@/utils/account";
 import { isLocalAuthBypassEnabled } from "@/utils/auth/local-bypass-config";
 import { isLocalBypassEmailAccount } from "@/utils/auth/local-bypass-email-account";
+import { FastmailProvider } from "@/utils/email/fastmail";
 import { GmailProvider } from "@/utils/email/google";
 import { createLocalBypassEmailProvider } from "@/utils/email/local-bypass-provider";
 import { OutlookProvider } from "@/utils/email/microsoft";
 import type { EmailProvider } from "@/utils/email/types";
+import { isFastmailProvider } from "@/utils/email/provider-types";
 import { assertProviderNotRateLimited } from "@/utils/email/rate-limit";
 import { toRateLimitProvider } from "@/utils/email/rate-limit-mode-error";
+import { createFastmailClient } from "@/utils/fastmail/client";
 import type { Logger } from "@/utils/logger";
 
 export async function createEmailProvider({
@@ -27,6 +31,12 @@ export async function createEmailProvider({
       logger,
     });
     if (localBypassProvider) return localBypassProvider;
+  }
+
+  if (isFastmailProvider(provider)) {
+    const token = await getFastmailTokenForEmail({ emailAccountId, logger });
+    const client = createFastmailClient(token, logger);
+    return new FastmailProvider(client, logger);
   }
 
   const rateLimitProvider = toRateLimitProvider(provider);

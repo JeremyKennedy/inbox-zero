@@ -9,6 +9,7 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
 import { cookies, headers } from "next/headers";
 import { env } from "@/env";
+import { fastmailAuthPlugin } from "@/utils/auth/fastmail-plugin";
 import { localBypassAuthPlugin } from "@/utils/auth/local-bypass-plugin";
 import {
   isLocalAuthBypassEnabled,
@@ -124,6 +125,7 @@ export const betterAuthConfig = betterAuth({
           }),
         ]
       : []),
+    fastmailAuthPlugin(),
     ...(isLocalAuthBypassEnabled() ? [localBypassAuthPlugin()] : []),
     nextCookies(), // Must be last
   ],
