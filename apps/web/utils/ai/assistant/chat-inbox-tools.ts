@@ -933,7 +933,13 @@ function shouldIncludeMessage({
 
   const labelIds =
     message.labelIds?.map((labelId) => labelId.toLowerCase()) || [];
-  const isInInbox = labelIds.includes("inbox");
+  // Gmail uses "inbox"/"INBOX" as a label. For JMAP providers, the inbox
+  // filter is applied server-side, so we skip the client-side check when
+  // no "inbox" label is present (non-Gmail mailbox IDs won't match).
+  const hasGmailStyleLabels = labelIds.some(
+    (id) => id === "inbox" || id === "sent" || id === "draft" || id === "trash",
+  );
+  const isInInbox = !hasGmailStyleLabels || labelIds.includes("inbox");
   const isUnread = labelIds.includes("unread");
 
   if (inboxOnly && !isInInbox) return false;
