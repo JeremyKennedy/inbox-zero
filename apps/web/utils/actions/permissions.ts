@@ -82,7 +82,7 @@ export const adminCheckPermissionsAction = adminActionClient
       }
 
       if (!isGoogleProvider(emailAccount.account.provider)) {
-        throw new SafeError("Unsupported provider");
+        return { hasAllPermissions: true };
       }
 
       const { accessToken, tokens } = await getGmailAndAccessTokenForEmail({

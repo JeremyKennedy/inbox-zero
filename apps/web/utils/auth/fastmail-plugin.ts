@@ -4,8 +4,7 @@ import { z } from "zod";
 import prisma from "@/utils/prisma";
 import { WELCOME_PATH } from "@/utils/config";
 import { isInternalPath } from "@/utils/path";
-
-const JMAP_SESSION_URL = "https://api.fastmail.com/jmap/session";
+import { JMAP_SESSION_URL } from "@/utils/fastmail/constants";
 const FASTMAIL_PROVIDER = "fastmail";
 const FASTMAIL_PROVIDER_ACCOUNT_PREFIX = "fastmail:";
 

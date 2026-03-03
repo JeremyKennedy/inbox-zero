@@ -9,7 +9,7 @@ import type {
 
 const SUBMISSION_CAPABILITY = "urn:ietf:params:jmap:submission";
 
-type Attachment = {
+type SendAttachment = {
   name: string;
   contentType: string;
   content: string; // base64-encoded
@@ -34,7 +34,7 @@ type SendEmailOptions = {
   inReplyTo?: string;
   references?: string;
   threadId?: string;
-  attachments?: Attachment[];
+  attachments?: SendAttachment[];
 };
 
 type SendEmailResult = {
@@ -116,7 +116,7 @@ export async function sendEmail(
 
   let attachmentBlobs: UploadedBlob[] | undefined;
   if (attachments?.length) {
-    attachmentBlobs = await uploadAttachments(client, attachments);
+    attachmentBlobs = await uploadSendAttachments(client, attachments);
   }
 
   const sentMailboxId = await getSentMailboxId(client, accountId);
@@ -488,9 +488,9 @@ function buildEmailObject(
   };
 }
 
-async function uploadAttachments(
+async function uploadSendAttachments(
   client: FastmailClient,
-  attachments: Attachment[],
+  attachments: SendAttachment[],
 ): Promise<UploadedBlob[]> {
   const results: UploadedBlob[] = [];
 

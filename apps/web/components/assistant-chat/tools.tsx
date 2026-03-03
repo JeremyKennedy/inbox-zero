@@ -247,7 +247,11 @@ export function ManageInboxResult({
                   rel="noopener noreferrer"
                   className="shrink-0 text-muted-foreground hover:text-foreground"
                   aria-label={`View ${sender} in ${
-                    provider === "microsoft" ? "Outlook" : "Gmail"
+                    provider === "microsoft"
+                      ? "Outlook"
+                      : provider === "fastmail"
+                        ? "Fastmail"
+                        : "Gmail"
                   }`}
                 >
                   <ExternalLinkIcon className="size-3.5" />
@@ -321,7 +325,12 @@ export function ReadEmailResult({ output }: { output: unknown }) {
         )}
         {externalUrl && (
           <ToolExternalLink href={externalUrl}>
-            Open in {provider === "microsoft" ? "Outlook" : "Gmail"}
+            Open in{" "}
+            {provider === "microsoft"
+              ? "Outlook"
+              : provider === "fastmail"
+                ? "Fastmail"
+                : "Gmail"}
           </ToolExternalLink>
         )}
       </div>
@@ -513,7 +522,12 @@ function EmailActionResult({
           <div className="flex flex-wrap items-center gap-2">
             {externalUrl && (
               <ToolExternalLink href={externalUrl}>
-                Open in {provider === "microsoft" ? "Outlook" : "Gmail"}
+                Open in{" "}
+                {provider === "microsoft"
+                  ? "Outlook"
+                  : provider === "fastmail"
+                    ? "Fastmail"
+                    : "Gmail"}
               </ToolExternalLink>
             )}
 

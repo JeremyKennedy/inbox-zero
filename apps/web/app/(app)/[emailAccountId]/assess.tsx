@@ -9,6 +9,7 @@ import {
 } from "@/utils/actions/assess";
 import { useAccount } from "@/providers/EmailAccountProvider";
 import { useOrgAccess } from "@/hooks/useOrgAccess";
+import { isGoogleProvider } from "@/utils/email/provider-types";
 
 export function AssessUser() {
   const { emailAccountId, provider } = useAccount();
@@ -31,7 +32,7 @@ export function AssessUser() {
     async function assess() {
       const result = await executeAssessAsync();
       // no need to run this over and over after the first time
-      if (!result?.data?.skipped && provider !== "microsoft") {
+      if (!result?.data?.skipped && isGoogleProvider(provider)) {
         executeWhitelistInboxZero();
       }
     }

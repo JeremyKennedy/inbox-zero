@@ -24,6 +24,7 @@ type ArchiveMessageOptions = {
 type TrashThreadOptions = {
   accountId: string;
   threadId: string;
+  inboxId: string;
   trashId: string;
 };
 
@@ -36,6 +37,7 @@ type MarkThreadReadOptions = {
 type MarkSpamOptions = {
   accountId: string;
   threadId: string;
+  inboxId: string;
   junkId: string;
 };
 
@@ -112,11 +114,12 @@ export async function trashThread(
   client: FastmailClient,
   options: TrashThreadOptions,
 ): Promise<JmapSetResponse> {
-  const { accountId, threadId, trashId } = options;
+  const { accountId, threadId, inboxId, trashId } = options;
 
   const emailIds = await getThreadEmailIds(client, { accountId, threadId });
   const update = buildUpdateForAll(emailIds, {
-    mailboxIds: { [trashId]: true },
+    [`mailboxIds/${inboxId}`]: null,
+    [`mailboxIds/${trashId}`]: true,
   });
 
   return emailSet(client, accountId, update);
@@ -140,11 +143,12 @@ export async function markSpam(
   client: FastmailClient,
   options: MarkSpamOptions,
 ): Promise<JmapSetResponse> {
-  const { accountId, threadId, junkId } = options;
+  const { accountId, threadId, inboxId, junkId } = options;
 
   const emailIds = await getThreadEmailIds(client, { accountId, threadId });
   const update = buildUpdateForAll(emailIds, {
-    mailboxIds: { [junkId]: true },
+    [`mailboxIds/${inboxId}`]: null,
+    [`mailboxIds/${junkId}`]: true,
   });
 
   return emailSet(client, accountId, update);
@@ -203,7 +207,7 @@ export async function moveThreadToFolder(
   const { accountId, threadId, targetMailboxId } = options;
 
   const emailIds = await getThreadEmailIds(client, { accountId, threadId });
-  // Replace all mailboxes with just the target
+  // moveToFolder is intentionally a full replacement — the target folder becomes the only mailbox
   const update = buildUpdateForAll(emailIds, {
     mailboxIds: { [targetMailboxId]: true },
   });
@@ -253,7 +257,8 @@ export async function bulkTrashFromSenders(
     if (emailIds.length === 0) continue;
 
     const update = buildUpdateForAll(emailIds, {
-      mailboxIds: { [trashId]: true },
+      [`mailboxIds/${inboxId}`]: null,
+      [`mailboxIds/${trashId}`]: true,
     });
 
     await emailSet(client, accountId, update);

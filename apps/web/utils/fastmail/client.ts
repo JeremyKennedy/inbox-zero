@@ -145,9 +145,9 @@ export class FastmailClient {
       (cap) => cap in session.capabilities,
     );
     this.logger.info("JMAP session established", {
-      username: session.username,
       capabilities: available.length,
     });
+    this.logger.trace("JMAP session user", { username: session.username });
 
     return session;
   }

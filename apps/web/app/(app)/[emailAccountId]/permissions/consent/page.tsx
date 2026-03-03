@@ -9,12 +9,19 @@ import { useAccount } from "@/providers/EmailAccountProvider";
 import { toastError } from "@/components/Toast";
 import { getAccountLinkingUrl } from "@/utils/account-linking";
 import { BRAND_NAME } from "@/utils/branding";
+import { isFastmailProvider } from "@/utils/email/provider-types";
 
 export default function PermissionsConsentPage() {
   const { provider, isLoading: accountLoading } = useAccount();
   const [isReconnecting, setIsReconnecting] = useState(false);
 
   const handleReconnect = async () => {
+    if (isFastmailProvider(provider)) {
+      // Fastmail uses API tokens, not OAuth — redirect to login to re-enter token
+      window.location.href = "/login";
+      return;
+    }
+
     setIsReconnecting(true);
 
     try {

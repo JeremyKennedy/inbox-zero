@@ -6,7 +6,10 @@ import { captureException } from "@/utils/error";
 import { cleanupInvalidTokens } from "@/utils/auth/cleanup-invalid-tokens";
 import type { EmailProvider } from "@/utils/email/types";
 import { createManagedOutlookSubscription } from "@/utils/outlook/subscription-manager";
-import { isMicrosoftProvider } from "@/utils/email/provider-types";
+import {
+  isFastmailProvider,
+  isMicrosoftProvider,
+} from "@/utils/email/provider-types";
 import { logErrorWithDedupe } from "@/utils/log-error-with-dedupe";
 
 export type WatchEmailAccountResult =
@@ -225,6 +228,13 @@ async function watchEmails({
   logger.info("Watching emails");
 
   try {
+    if (isFastmailProvider(provider.name)) {
+      // Fastmail uses polling, not push subscriptions — skip watch setup
+      const farFuture = new Date();
+      farFuture.setFullYear(farFuture.getFullYear() + 10);
+      return { success: true, expirationDate: farFuture };
+    }
+
     if (isMicrosoftProvider(provider.name)) {
       const result = await createManagedOutlookSubscription({
         emailAccountId,

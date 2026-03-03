@@ -396,6 +396,11 @@ export class FastmailProvider implements EmailProvider {
     const response = await fetch(downloadUrl, {
       headers: { Authorization: `Bearer ${this.client.getAccessToken()}` },
     });
+    if (!response.ok) {
+      throw new Error(
+        `Attachment download failed: ${response.status} ${response.statusText}`,
+      );
+    }
     const buffer = await response.arrayBuffer();
     const base64 = Buffer.from(buffer).toString("base64");
     return { data: base64, size: buffer.byteLength };
@@ -555,13 +560,14 @@ export class FastmailProvider implements EmailProvider {
     labelId?: string,
   ): Promise<void> {
     if (labelId) {
+      const accountId = await this.client.getAccountId();
       const emailIds = await getThreadEmailIds(this.client, {
-        accountId: await this.client.getAccountId(),
+        accountId,
         threadId,
       });
       for (const emailId of emailIds) {
         await jmapLabelMessage(this.client, {
-          accountId: await this.client.getAccountId(),
+          accountId,
           messageId: emailId,
           mailboxId: labelId,
         });
@@ -587,6 +593,7 @@ export class FastmailProvider implements EmailProvider {
     await jmapTrashThread(this.client, {
       accountId,
       threadId,
+      inboxId: getInboxId(c),
       trashId: getTrashId(c),
     });
   }
@@ -597,6 +604,7 @@ export class FastmailProvider implements EmailProvider {
     await jmapMarkSpam(this.client, {
       accountId,
       threadId,
+      inboxId: getInboxId(c),
       junkId: getJunkId(c),
     });
   }
