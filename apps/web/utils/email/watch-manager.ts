@@ -232,6 +232,10 @@ async function watchEmails({
       // Fastmail uses polling, not push subscriptions — skip watch setup
       const farFuture = new Date();
       farFuture.setFullYear(farFuture.getFullYear() + 10);
+      await prisma.emailAccount.update({
+        where: { id: emailAccountId },
+        data: { watchEmailsExpirationDate: farFuture },
+      });
       return { success: true, expirationDate: farFuture };
     }
 

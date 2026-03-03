@@ -359,6 +359,12 @@ export async function sendDraft(
       },
       "submit",
     ],
+    // EmailSubmission doesn't return threadId — fetch it from the email
+    [
+      "Email/get",
+      { accountId, ids: [draftId], properties: ["threadId"] },
+      "getThread",
+    ],
   ];
 
   const responses = await client.request(methodCalls);
@@ -377,14 +383,15 @@ export async function sendDraft(
     );
   }
 
-  const submission = submitData.created?.sendRef;
-  if (!submission) {
-    throw new Error("EmailSubmission/set returned no created submission");
-  }
+  const emailData = responses[2][1] as JmapGetResponse<{
+    id: string;
+    threadId: string;
+  }>;
+  const email = emailData.list[0];
 
   return {
-    messageId: submission.emailId as string,
-    threadId: (submission.threadId as string) ?? draftId,
+    messageId: draftId,
+    threadId: email?.threadId ?? draftId,
   };
 }
 
