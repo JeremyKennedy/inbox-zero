@@ -100,3 +100,8 @@ qa/browser-flows/results/*
 # local skills
 .claude/skills/local/
 .agents/skills/local/
+
+# Local generated state
+.devenv/
+.devenv.flake.nix
+.jk-work/
